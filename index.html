@@ -44,7 +44,7 @@
  </style>
 </head>
 <body>
-
+ 
  <h1>Aponte a Câmera para o Código de Barras</h1>
  
  <div id="video-container">
@@ -52,20 +52,20 @@
  </div>
  
  <div id="message">Aguardando câmera...</div>
-
+ 
 <script>
  const video = document.getElementById('video');
  const messageDiv = document.getElementById('message');
  let codeReader;
-
+ 
  function showMessage(text, type) {
   messageDiv.textContent = text;
   messageDiv.className = type;
  }
-
+ 
  async function startScanner() {
   showMessage('Iniciando o leitor de código de barras...', 'success');
-
+ 
   try {
    codeReader = new ZXing.BrowserMultiFormatReader();
    
@@ -89,14 +89,14 @@
      codeReader.reset();
     }
    });
-
+ 
   } catch (error) {
    showMessage(`Erro fatal: ${error.name} - ${error.message}`, 'error');
   }
  }
-
+ 
  window.addEventListener('load', startScanner);
 </script>
-
+ 
 </body>
 </html>
