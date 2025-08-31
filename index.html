@@ -68,36 +68,28 @@
 
   try {
    codeReader = new ZXing.BrowserMultiFormatReader();
-   showMessage('Listando dispositivos de vídeo...', 'success');
-
-   const devices = await codeReader.listVideoInputDevices();
-   if (devices && devices.length > 0) {
-    const videoInputDevice = devices.find(device => device.label.toLowerCase().includes('back')) || devices[0];
-    
-    showMessage('Dispositivo de vídeo encontrado, tentando abrir a câmera...', 'success');
-    
-    // Este método da biblioteca ZXing já inicia o vídeo e a decodificação
-    codeReader.decodeFromVideoDevice(videoInputDevice.deviceId, 'video', (result, err) => {
-     if (result) {
-      const scannedBarcode = result.text;
-      showMessage(`Código lido: ${scannedBarcode}`, 'success');
-      
-      // Enviando o código de barras de volta para a URL principal
-      if (window.opener) {
-       window.opener.location.href = window.opener.location.href.split('?')[0] + '?barcode=' + scannedBarcode;
-       codeReader.reset();
-       window.close();
-      }
-     }
+   
+   showMessage('Tentando abrir a câmera...', 'success');
+   
+   // AQUI ESTÁ A ÚNICA MUDANÇA: Usando o método que pede a câmera padrão do navegador
+   codeReader.decodeFromVideoDevice(undefined, 'video', (result, err) => {
+    if (result) {
+     const scannedBarcode = result.text;
+     showMessage(`Código lido: ${scannedBarcode}`, 'success');
      
-     if (err && !(err instanceof ZXing.NotFoundException)) {
-      showMessage('Erro ao decodificar: ' + err.message, 'error');
+     if (window.opener) {
+      window.opener.location.href = window.opener.location.href.split('?')[0] + '?barcode=' + scannedBarcode;
       codeReader.reset();
+      window.close();
      }
-    });
-   } else {
-    showMessage('Nenhum dispositivo de vídeo encontrado. A câmera pode estar bloqueada.', 'error');
-   }
+    }
+    
+    if (err && !(err instanceof ZXing.NotFoundException)) {
+     showMessage('Erro ao decodificar: ' + err.message, 'error');
+     codeReader.reset();
+    }
+   });
+
   } catch (error) {
    showMessage(`Erro fatal: ${error.name} - ${error.message}`, 'error');
   }
