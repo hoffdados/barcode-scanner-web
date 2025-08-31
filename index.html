@@ -71,14 +71,14 @@
    
    showMessage('Tentando abrir a câmera...', 'success');
    
-   // AQUI ESTÁ A ÚNICA MUDANÇA: Usando o método que pede a câmera padrão do navegador
    codeReader.decodeFromVideoDevice(undefined, 'video', (result, err) => {
     if (result) {
      const scannedBarcode = result.text;
      showMessage(`Código lido: ${scannedBarcode}`, 'success');
      
      if (window.opener) {
-      window.opener.location.href = window.opener.location.href.split('?')[0] + '?barcode=' + scannedBarcode;
+      // NOVA ABORDAGEM: Envia o código de barras como uma mensagem para a janela que abriu esta
+      window.opener.postMessage(scannedBarcode, '*');
       codeReader.reset();
       window.close();
      }
