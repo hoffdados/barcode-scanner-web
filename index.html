@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <base target="_top">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Leitor de Código de Barras</title>
+ <script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+ 
+ <style>
+  body {
+   font-family: sans-serif;
+   text-align: center;
+   background-color: #f3f4f6;
+   color: #1f2937;
+   margin: 0;
+   padding: 20px;
+  }
+  #video-container {
+   position: relative;
+   width: 100%;
+   max-width: 500px;
+   margin: 0 auto;
+  }
+  video {
+   width: 100%;
+   height: auto;
+   border: 2px solid #3b82f6;
+   border-radius: 8px;
+  }
+  #message {
+   margin-top: 10px;
+   padding: 10px;
+   border-radius: 5px;
+   font-weight: bold;
+  }
+  .success {
+   background-color: #d1fae5;
+   color: #065f46;
+  }
+  .error {
+   background-color: #fee2e2;
+   color: #991b1b;
+  }
+ </style>
+</head>
+<body>
+
+ <h1>Aponte a Câmera para o Código de Barras</h1>
+ 
+ <div id="video-container">
+  <video id="video" width="100%" height="100%"></video>
+ </div>
+ 
+ <div id="message">Aguardando câmera...</div>
+
+<script>
+ const video = document.getElementById('video');
+ const messageDiv = document.getElementById('message');
+ let codeReader;
+
+ function showMessage(text, type) {
+  messageDiv.textContent = text;
+  messageDiv.className = type;
+ }
+
+ async function startScanner() {
+  showMessage('Iniciando o leitor de código de barras...', 'success');
+
+  try {
+   codeReader = new ZXing.BrowserMultiFormatReader();
+   showMessage('ZXing inicializado. Listando dispositivos de vídeo...', 'success');
+
+   const devices = await codeReader.listVideoInputDevices();
+   if (devices && devices.length > 0) {
+    const videoInputDevice = devices.find(device => device.label.toLowerCase().includes('back')) || devices[0];
+    
+    showMessage('Dispositivo de vídeo encontrado, tentando abrir a câmera...', 'success');
+    
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: videoInputDevice.deviceId } });
+    video.srcObject = stream;
+    video.play();
+
+    showMessage('Câmera aberta. Procurando por códigos de barras...', 'success');
+
+    codeReader.decodeFromVideoDevice(videoInputDevice.deviceId, 'video', (result, err) => {
+     if (result) {
+      const scannedBarcode = result.text;
+      showMessage(`Código lido: ${scannedBarcode}`, 'success');
+      
+      if (window.opener) {
+       window.opener.postMessage({
+        type: 'barcodeScanned',
+        barcode: scannedBarcode
+       }, '*');
+      }
+
+      codeReader.reset();
+      setTimeout(() => window.close(), 1000);
+     }
+     if (err && !(err instanceof ZXing.NotFoundException)) {
+      showMessage('Erro ao decodificar: ' + err.message, 'error');
+      codeReader.reset();
+     }
+    });
+   } else {
+    showMessage('Nenhum dispositivo de vídeo encontrado. A câmera pode estar bloqueada.', 'error');
+   }
+  } catch (error) {
+   showMessage(`Erro fatal: ${error.name} - ${error.message}`, 'error');
+  }
+ }
+
+ window.addEventListener('load', startScanner);
+</script>
+
+</body>
+</html>
