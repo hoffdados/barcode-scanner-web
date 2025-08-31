@@ -88,15 +88,10 @@
       showMessage(`Código lido: ${scannedBarcode}`, 'success');
       
       if (window.opener) {
-       window.opener.postMessage({
-        type: 'barcodeScanned',
-        barcode: scannedBarcode
-       }, '*');
-      }
-
-      codeReader.reset();
-      setTimeout(() => window.close(), 1000);
-     }
+      window.opener.location.href = window.opener.location.href + '?barcode=' + scannedBarcode;
+       codeReader.reset();
+      window.close(); // Fecha a janela do scanner imediatamente após redirecionar
+    }
      if (err && !(err instanceof ZXing.NotFoundException)) {
       showMessage('Erro ao decodificar: ' + err.message, 'error');
       codeReader.reset();
