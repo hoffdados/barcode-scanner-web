@@ -68,7 +68,7 @@
 
   try {
    codeReader = new ZXing.BrowserMultiFormatReader();
-   showMessage('ZXing inicializado. Listando dispositivos de vídeo...', 'success');
+   showMessage('Listando dispositivos de vídeo...', 'success');
 
    const devices = await codeReader.listVideoInputDevices();
    if (devices && devices.length > 0) {
@@ -76,22 +76,20 @@
     
     showMessage('Dispositivo de vídeo encontrado, tentando abrir a câmera...', 'success');
     
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: videoInputDevice.deviceId } });
-    video.srcObject = stream;
-    video.play();
-
-    showMessage('Câmera aberta. Procurando por códigos de barras...', 'success');
-
+    // Este método da biblioteca ZXing já inicia o vídeo e a decodificação
     codeReader.decodeFromVideoDevice(videoInputDevice.deviceId, 'video', (result, err) => {
      if (result) {
       const scannedBarcode = result.text;
       showMessage(`Código lido: ${scannedBarcode}`, 'success');
       
+      // Enviando o código de barras de volta para a URL principal
       if (window.opener) {
-      window.opener.location.href = window.opener.location.href + '?barcode=' + scannedBarcode;
-       codeReader.reset();
-      window.close(); // Fecha a janela do scanner imediatamente após redirecionar
-    }
+       window.opener.location.href = window.opener.location.href.split('?')[0] + '?barcode=' + scannedBarcode;
+       codeReader.reset();
+       window.close();
+      }
+     }
+     
      if (err && !(err instanceof ZXing.NotFoundException)) {
       showMessage('Erro ao decodificar: ' + err.message, 'error');
       codeReader.reset();
