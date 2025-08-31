@@ -76,9 +76,9 @@
      const scannedBarcode = result.text;
      showMessage(`Código lido: ${scannedBarcode}`, 'success');
      
-     if (window.opener) {
-      // NOVA ABORDAGEM: Envia o código de barras como uma mensagem para a janela que abriu esta
-      window.opener.postMessage(scannedBarcode, '*');
+     if (window.opener && window.opener.setScannedBarcode) {
+      // NOVA ABORDAGEM: Chama a função no aplicativo principal diretamente
+      window.opener.setScannedBarcode(scannedBarcode);
       codeReader.reset();
       window.close();
      }
